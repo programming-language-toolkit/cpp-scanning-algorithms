@@ -1,13 +1,11 @@
-module;
+#include <algorithm>     // std::ranges::mismatch
+#include <functional>    // std::invoke, std::identity
 #include <iterator>
-
-export module scanning_algorithms;
 
 
 namespace pltk
 {
 
-export
 template <class F, class I, class S, class... Args>
 concept scanning_algorithm =
     std::input_iterator<I> &&
@@ -15,12 +13,15 @@ concept scanning_algorithm =
     std::is_invocable_r_v<I, F, I, S, Args...>;
 
 
+namespace detail
+{
+
 struct scan_fn
 {
     template <std::input_iterator I, std::sentinel_for<I> S, class T,
               class Pred = std::ranges::equal_to, class Proj = std::identity>
         requires std::indirect_binary_predicate<Pred, std::projected<I, Proj>, const T*>
-    constexpr I operator() (I first, S last, const T& value, Pred pred, Proj proj = {})
+    constexpr I operator() (I first, S last, const T& value, Pred pred = {}, Proj proj = {}) const
     {
         if (first == last || !std::invoke(pred, std::invoke(proj, *first), value))    return first;
         return first + 1;
@@ -100,8 +101,6 @@ struct scan_fn
     }
 }; // struct scan_fn
 
-export inline constexpr scan_fn scan{};
-
 
 struct scan_if_fn
 {
@@ -122,8 +121,6 @@ struct scan_if_fn
         return operator()(std::ranges::begin(r), std::ranges::end(r), std::move(pred), std::move(proj));
     }
 }; // struct scan_if_fn
-
-export inline constexpr scan_if_fn scan_if{};
 
 
 struct scan_not_fn
@@ -211,8 +208,6 @@ struct scan_not_fn
     }
 }; // struct scan_not_fn
 
-export inline constexpr scan_not_fn scan_not{};
-
 
 struct scan_if_not_fn
 {
@@ -235,56 +230,13 @@ struct scan_if_not_fn
     }
 }; // struct scan_if_not_fn
 
-export inline constexpr scan_if_not_fn scan_if_not{};
+} // namespace detail
 
 
-struct scan_excluding_fn
-{
-    // Note: std::forward_iterator is required for first1 so it remains valid after the call to scanner.
-    template <std::forward_iterator I, std::sentinel_for<I> S,
-              scanning_algorithm<I, S> Scanner>
-    constexpr I operator() (I first, S last, Scanner scanner) const
-    {
-        if (std::invoke(std::move(scanner), first, last) != first)    return first;
-
-        return first + 1;
-    }
-
-
-    template <std::ranges::forward_range R,
-              scanning_algorithm<std::ranges::iterator_t<R>, std::ranges::sentinel_t<R>> Scanner>
-    constexpr std::ranges::iterator_t<R> operator() (R&& r, Scanner scanner) const
-    {
-        return operator()(std::ranges::begin(r), std::ranges::end(r), std::move(scanner));
-    }
-}; // struct scan_excluding_fn
-
-export inline constexpr scan_excluding_fn scan_excluding{};
-
-
-struct scan_while_excluding_fn
-{
-    // Note: std::forward_iterator is required for first1 so it remains valid after the call to std::ranges::mismatch.
-    template <std::forward_iterator I, std::sentinel_for<I> S,
-              scanning_algorithm<I, S> Scanner>
-    constexpr I operator() (I first, S last, Scanner scanner) const
-    {
-        while (first != last && std::invoke(scanner, first, last) == first)
-            ++first;
-
-        return first;
-    }
-
-
-    template <std::ranges::forward_range R,
-              scanning_algorithm<std::ranges::iterator_t<R>, std::ranges::sentinel_t<R>> Scanner>
-    constexpr std::ranges::iterator_t<R> operator() (R&& r, Scanner scanner) const
-    {
-        return operator()(std::ranges::begin(r), std::ranges::end(r), std::move(scanner));
-    }
-}; // struct scan_while_excluding_fn
-
-export inline constexpr scan_while_excluding_fn scan_while_excluding{};
+inline constexpr detail::scan_fn        scan{};
+inline constexpr detail::scan_if_fn     scan_if{};
+inline constexpr detail::scan_not_fn    scan_not{};
+inline constexpr detail::scan_if_not_fn scan_if_not{};
 
 
 } // namespace pltk
