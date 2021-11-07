@@ -3,8 +3,8 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = ../external/sphinx-build
-SOURCEDIR     = src
+SPHINXBUILD   = ../external/sphinx/sphinx-build
+SOURCEDIR     = ./
 BUILDDIR      = ../build/docs/
 
 # Put it first so that "make" without argument is like "make help".
