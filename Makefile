@@ -7,65 +7,75 @@ CPPFLAGS := -MMD
 
 INCLUDES := -Iexternal -Isrc
 
-COMPILE  := $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES)
-
 # Set the display of the time command. See https://man7.org/linux/man-pages/man1/time.1.html
-TIME_FORMAT="%E elapsed  (%U user  %S system)  |  %P CPU  |  %Xk text  %Dk data  %Mk max  |  %I inputs  %O outputs  |  %F major + %R minor pagefaults  |  %W swaps\n"
+TIME_FORMAT := "%E elapsed  (%U user  %S system)  |  %P CPU  |  %Xk text  %Dk data  %Mk max  |  %I inputs  %O outputs  |  %F major + %R minor pagefaults  |  %W swaps\n"
 
-
-.PHONY: error
-error:
-	@echo "Error: please provide a make rule"
+COMPILE = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(BUILD_FLAGS) $(INCLUDES)
+LINK    = $(CXX) $(INCLUDES)
 
 
 .PHONY: all
 all:
 	$(MAKE) tests
-	$(MAKE) examples
 	$(MAKE) docs
+
+
+# ======================================================================================================================
+# Functions
+# ======================================================================================================================
+define compile
+	@echo "building $(@F) ..."
+	@mkdir -p $(@D)
+	@time -f $(TIME_FORMAT) -- $(COMPILE) -o $@ -c $<
+endef
+
+
+define link
+	@echo "building $(@F) ..."
+	@time -f $(TIME_FORMAT) -- $(LINK) -o $@ $^
+endef
 
 
 # ======================================================================================================================
 # Tests
 # ======================================================================================================================
-TEST_SRCS = $(filter-out tests/main.test.cpp,$(shell find tests/ -name "*.test.cpp"))
-TEST_EXES = $(addprefix build/,$(TEST_SRCS:.cpp=.out))
-
-
-.PHONY: tests
-tests: build/tests/main.test.o $(TEST_EXES)
-
-
-build/tests/%.test.out: tests/%.test.cpp
-	@echo "building $(@F) ..."
-	@mkdir -p $(@D)
-	@time -f $(TIME_FORMAT) -- $(COMPILE) -ggdb build/tests/main.test.o $< -o $@
-
-
-build/tests/main.test.o: tests/main.test.cpp
-	@echo "building $(@F) ..."
-	@mkdir -p $(@D)
-	@time -f $(TIME_FORMAT) -- $(COMPILE) -O3 -ggdb $< -c -o $@
-
-
+TEST_SRCS := $(filter-out tests/main.test.cpp,$(shell find tests/ -name "*.test.cpp"))
+TEST_EXES := $(addprefix build/,$(TEST_SRCS:.cpp=.out))
 TEST_DEPS := $(TEST_EXES:.out=.d)
 -include $(TEST_DEPS)
 
 
-# Recompiles on change, so the test harness can autorun. Pass relative src= on the command line.
+.PHONY: tests
+tests: BUILD_FLAGS = -ggdb -DDEBUG
+tests: build/tests/main.test.o $(TEST_EXES)
+
+
+build/tests/main.test.o: tests/main.test.cpp
+	$(compile)
+
+
+build/tests/%.test.o: tests/%.test.cpp
+	$(compile)
+
+
+build/tests/%.test.out: build/tests/%.test.o build/tests/main.test.o
+	$(link)
+
+
+# Recompiles on change. Pass relative src= and optional out= on the command line.
 .PHONY: watch-test
-watch-test: exe=build/$(basename $(src)).out
+watch-test: out=build/$(basename $(src)).out
 watch-test:
-	@if [ -f "$(src)" ]; then                     \
+	@if [ ! -f "$(src)" ]; then                   \
+		echo "file doesn't exist: $(src)";        \
+	else                                          \
 		while true; do                            \
 			clear;                                \
-			$(MAKE) $(exe) --no-print-directory;  \
+			$(MAKE) $(out) --no-print-directory;  \
 			                                      \
 			echo "watching $(notdir $(src)) ..."; \
 			inotifywait -qq -e modify $(src);     \
 		done;                                     \
-	else                                          \
-		echo "file doesn't exist: $(src)";        \
 	fi
 
 
@@ -82,19 +92,12 @@ docs:
 # ======================================================================================================================
 .PHONY: clean-all clean-tests clean-docs
 clean-all:
-	rm -rf build/
+	rm -rf build/ gcm.cache/
 
 
 clean-tests:
-	rm -rf build/tests
+	rm -rf build/tests/
 
 
 clean-docs:
-	rm -rf build/docs
-
-
-.PHONY: troubleshoot
-troubleshoot:
-	@echo $(TEST_SRCS)
-	@echo $(TEST_EXES)
-	@echo $(TEST_DEPS)
+	rm -rf build/docs/
