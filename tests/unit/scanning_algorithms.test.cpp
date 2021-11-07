@@ -265,14 +265,14 @@ SCENARIO("The scan_if function should advance its return iterator by a certain a
         {
             THEN("it should advance the iterator by one if the predicate returns true.")
             {
-                REQUIRE(first + 1 == scan_if(first, last, returns_true, std::identity{}));
-                REQUIRE(first + 1 == scan_if(source, returns_true, std::identity{}));
+                REQUIRE(first + 1 == scan_if(first, last, returns_true));
+                REQUIRE(first + 1 == scan_if(source, returns_true));
             }
 
             THEN("it should not advance the iterator if the predicate returns false.")
             {
-                REQUIRE(first == scan_if(first, last, returns_false, std::identity{}));
-                REQUIRE(first == scan_if(source, returns_false, std::identity{}));
+                REQUIRE(first == scan_if(first, last, returns_false));
+                REQUIRE(first == scan_if(source, returns_false));
             }
         }
     }
@@ -565,14 +565,14 @@ SCENARIO("The scan_if_not function should advance its return iterator by a certa
         {
             THEN("it should advance the iterator by one if the predicate returns false.")
             {
-                REQUIRE(first + 1 == scan_if_not(first, last, returns_false, std::identity{}));
-                REQUIRE(first + 1 == scan_if_not(source, returns_false, std::identity{}));
+                REQUIRE(first + 1 == scan_if_not(first, last, returns_false));
+                REQUIRE(first + 1 == scan_if_not(source, returns_false));
             }
 
             THEN("it should not advance the iterator if the predicate returns true.")
             {
-                REQUIRE(first == scan_if_not(first, last, returns_true, std::identity{}));
-                REQUIRE(first == scan_if_not(source, returns_true, std::identity{}));
+                REQUIRE(first == scan_if_not(first, last, returns_true));
+                REQUIRE(first == scan_if_not(source, returns_true));
             }
         }
     }
