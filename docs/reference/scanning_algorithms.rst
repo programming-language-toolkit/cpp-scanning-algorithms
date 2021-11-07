@@ -263,9 +263,10 @@ Returns ``first + 1`` if the first element of the range does not satisfy ``pred`
 
 8) ::
 
-     template <mutable_forward_range R,
-               std::indirect_unary_predicate<std::ranges::iterator_t<R>> P>
-     bool scan_if_not (R&& r, P pred) const
+    template <std::ranges::input_range R,
+              class Proj = std::identity,
+              std::indirect_unary_predicate<std::ranges::iterator_t<R>> Pred>
+    constexpr std::ranges::iterator_t<R> scan_if_not (R&& r, Pred pred, Proj proj = {})
 
 Same as (7), using ``r`` as the source range.
 
