@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>     // std::ranges::mismatch
 #include <functional>    // std::invoke, std::identity
 #include <iterator>
