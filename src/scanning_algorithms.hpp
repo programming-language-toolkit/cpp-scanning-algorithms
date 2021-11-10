@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2021 Mike Castillo. All rights reserved.
+ * Licensed under the MIT License. See the LICENSE file for full license information.
+ *
+ * Scanning Algorithms
+ *
+ * Algorithms for scanning sequences of elements, in the style of the C++ standard library.
+ *
+ * Part of the Programming Language Toolkit (PLTK).
+ */
+
 #pragma once
 
 #include <algorithm>     // std::ranges::mismatch
