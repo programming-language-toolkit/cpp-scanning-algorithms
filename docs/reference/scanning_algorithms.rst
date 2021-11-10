@@ -133,7 +133,7 @@ Complexity
 | 7, 8) O(1) + one invocation of ``pred`` and ``proj``
 
 
-Examples
+Example
 -------------------------------------------------------
 
 ::
@@ -288,7 +288,7 @@ Complexity
 | 7, 8) O(1) + one invocation of ``pred`` and ``proj``
 
 
-Examples
+Example
 -------------------------------------------------------
 
 ::
